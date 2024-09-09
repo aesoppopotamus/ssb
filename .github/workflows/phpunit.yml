@@ -34,4 +34,4 @@ jobs:
 
     - name: Run PHPUnit
       working-directory: src
-      run: vendor/bin/phpunit --testdox
+      run: vendor/bin/phpunit tests/ --testdox

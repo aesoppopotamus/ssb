@@ -1,1 +1,0 @@
-{"version":1,"defects":{"LoginTest::testLogin":4,"LoginTest::testSuccessfulLogin":3,"LoginTest::testFailedLogin":3},"times":{"LoginTest::testLogin":0.077,"LoginTest::testSuccessfulLogin":0.106,"LoginTest::testFailedLogin":0.001,"LoginTest::testSuccessfulLoginWithMock":0.763}}
