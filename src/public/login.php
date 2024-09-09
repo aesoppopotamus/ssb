@@ -1,18 +1,18 @@
 <?php
 session_start();
-require __DIR__ . '/../config/db.php';;  // Database connection
+require __DIR__ . '/../config/db.php';  // Database connection
 
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    $username = trim($_POST['username']);  // Trim input to remove extra spaces
     $password = $_POST['password'];
 
     // Check if both fields are filled
     if (empty($username) || empty($password)) {
         $error = "Please enter both username and password.";
     } else {
-        // Fetch the user from the database
+        // Fetch the user from the database using a prepared statement
         $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -21,27 +21,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
 
-            // Try password_verify first
+            // Use password_verify to check bcrypt-hashed password
             if (password_verify($password, $user['password'])) {
-                // Password is bcrypt-hashed and verified
+                // Password is verified, regenerate session ID for security
+                session_regenerate_id(true);
                 $_SESSION['loggedin'] = true;
                 $_SESSION['username'] = $user['username'];
                 header("Location: admin-dashboard.php");
                 exit;
             } else {
                 // Try MySQL PASSWORD() method (for legacy users)
-                $mysql_hash = $conn->query("SELECT PASSWORD('$password') AS hash")->fetch_assoc()['hash'];
-
+                $stmt_legacy = $conn->prepare("SELECT PASSWORD(?) AS hash");
+                $stmt_legacy->bind_param("s", $password);
+                $stmt_legacy->execute();
+                $legacy_result = $stmt_legacy->get_result();
+                $mysql_hash = $legacy_result->fetch_assoc()['hash'];
+                
+                // If the legacy hash matches, rehash the password with bcrypt
                 if ($mysql_hash === $user['password']) {
-                    // Rehash password using PHP's password_hash() for future logins
+                    // Rehash the password using PHP's password_hash()
                     $new_hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
+                    // Update the user's password in the database
                     $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
                     $update_stmt->bind_param("ss", $new_hashed_password, $username);
                     $update_stmt->execute();
                     $update_stmt->close();
 
-                    // Login successful, update session
+                    // Regenerate session and login
+                    session_regenerate_id(true);
                     $_SESSION['loggedin'] = true;
                     $_SESSION['username'] = $user['username'];
                     header("Location: admin-dashboard.php");
@@ -69,21 +77,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Admin Login</h2>
-        <?php if ($error): ?>
-            <div class="alert alert-danger"><?php echo $error; ?></div>
-        <?php endif; ?>
-        <form action="login.php" method="POST">
-            <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <h2 class="text-center">Admin Login</h2>
+
+                <!-- Error message -->
+                <?php if ($error): ?>
+                    <div class="alert alert-danger">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Login form -->
+                <form action="login.php" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+        </div>
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

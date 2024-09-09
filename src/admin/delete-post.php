@@ -5,7 +5,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     exit;
 }
 
-require __DIR__ . '/../config/db.php';;  // Your database connection
+require __DIR__ . '/../config/db.php'; // Your database connection
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
@@ -15,7 +15,8 @@ if (isset($_GET['id'])) {
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        header("Location: admin-dashboard.php");
+        header("Location: post-deleted.php?id=$id");  // Redirect to the confirmation page
+        exit;
     } else {
         echo "Error deleting post.";
     }

@@ -1,16 +1,15 @@
 <?php
 session_start();
+
+// Check if the user is logged in, if not redirect to login page
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header("Location: login.php");
     exit;
 }
 
-require __DIR__ . '/../config/db.php';;  // Database connection
-
-// Fetch all posts from the database
-$sql = "SELECT * FROM posts ORDER BY created_at DESC";
-$result = $conn->query($sql);
 ?>
+
+<?php include __DIR__ . '/../includes/header.php'; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,38 +18,32 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/styles.css" rel="stylesheet"> <!-- Link to custom styles if needed -->
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Admin Dashboard</h1>
+        <h1 class="text-center">Admin Dashboard</h1>
+        <p class="text-center">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
 
-        <a href="create-post.php" class="btn btn-success mb-3">Create New Post</a>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="list-group">
+                    <a href="/admin/admin-posts.php" class="list-group-item list-group-item-action">Manage Posts</a>
+                    <a href="/admin/admin-comments.php" class="list-group-item list-group-item-action">Manage Comments</a>
+                    <!-- Optional: User management link -->
+                    <a href="/admin/admin-users.php" class="list-group-item list-group-item-action">Manage Users</a>
+                </div>
+            </div>
+        </div>
 
-        <?php if ($result->num_rows > 0): ?>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo $row['title']; ?></td>
-                            <td><?php echo date("F j, Y", strtotime($row['created_at'])); ?></td>
-                            <td>
-                                <a href="edit-post.php?id=<?php echo $row['id']; ?>" class="btn btn-primary">Edit</a>
-                                <a href="delete-post.php?id=<?php echo $row['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>No posts available.</p>
-        <?php endif; ?>
+        <!-- Logout Button -->
+        <div class="text-center mt-4">
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php include __DIR__ . '/../includes/footer.php'; ?>
+
