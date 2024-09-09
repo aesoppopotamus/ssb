@@ -1,2 +1,27 @@
+# Logs
+/logs/*
+!/logs/.gitkeep
+
+# Ignore local environment files
 .env
+
+# Ignore composer vendor folder
 /src/vendor/
+
+# Ignore composer cache
+/src/vendor/composer/cache/
+
+# Ignore Docker
+.docker/
+
+# Ignore temporary or build artifacts
+*.log
+*.tmp
+*.bak
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+
+# Node modules (if applicable)
+node_modules/
