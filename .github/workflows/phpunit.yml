@@ -21,8 +21,13 @@ jobs:
       with:
         php-version: '7.4'
 
+    - name: Change to the /src directory
+      run: cd src
+
     - name: Install Composer dependencies
+      working-directory: src
       run: composer install
 
     - name: Run PHPUnit
+      working-directory: src
       run: vendor/bin/phpunit --testdox
