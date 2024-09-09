@@ -28,6 +28,10 @@ jobs:
       working-directory: src
       run: composer install
 
+    - name: Set PHPUnit as executable
+      working-directory: src
+      run: chmod +x vendor/bin/phpunit  # This will set the required executable permissions for PHPUnit
+
     - name: Run PHPUnit
       working-directory: src
       run: vendor/bin/phpunit --testdox
